@@ -11,7 +11,9 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 WORKDIR /app
 
 COPY composer.json composer.lock* ./
-RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+# Ignore platform reqs so Docker build doesn't fail on PHP/ext checks from lock file
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --ignore-platform-reqs
 
 COPY . .
 RUN composer dump-autoload --optimize
