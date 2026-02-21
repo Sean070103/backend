@@ -1,5 +1,5 @@
-# Laravel on Render: PHP 8.3 + artisan serve (listens on PORT)
-FROM php:8.3-cli
+# Laravel on Render: PHP 8.4 + artisan serve (listens on PORT)
+FROM php:8.4-cli
 
 RUN apt-get update && apt-get install -y \
     git unzip libzip-dev libpng-dev libonig-dev libpq-dev \
@@ -16,7 +16,7 @@ ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist --no-interaction --ignore-platform-reqs
 
 COPY . .
-RUN composer dump-autoload --optimize
+RUN composer dump-autoload --optimize --ignore-platform-reqs
 
 # Create storage/cache dirs and ensure writable
 RUN mkdir -p storage/framework/{sessions,views,cache} storage/logs bootstrap/cache \
