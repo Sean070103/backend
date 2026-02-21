@@ -2,7 +2,7 @@
 FROM php:8.3-cli
 
 RUN apt-get update && apt-get install -y \
-    git unzip libzip-dev libpng-dev libonig-dev \
+    git unzip libzip-dev libpng-dev libonig-dev libpq-dev \
     && docker-php-ext-install zip pdo_mysql pdo_pgsql mbstring \
     && rm -rf /var/lib/apt/lists/*
 
