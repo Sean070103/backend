@@ -35,4 +35,12 @@ return [
         ],
     ],
 
+    'typesense' => [
+        'enabled' => env('TYPESENSE_ENABLED', false),
+        'host' => env('TYPESENSE_HOST'),
+        'port' => env('TYPESENSE_PORT', 443),
+        'protocol' => env('TYPESENSE_PROTOCOL', 'https'),
+        'api_key' => env('TYPESENSE_API_KEY'),
+    ],
+
 ];

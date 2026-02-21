@@ -1,8 +1,13 @@
 *.log
 .DS_Store
+
+# Environment and secrets (never commit real keys, Typesense login, 2FA, or backup codes)
 .env
 .env.backup
+.env.local
+.env.*.local
 .env.production
+!.env.example
 .phpactor.json
 .phpunit.result.cache
 /.fleet

@@ -1,59 +1,161 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Protocol & Discussion Platform – Laravel API
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Community-powered API for protocols, threads, comments, reviews, and votes. Built for the Junior Full Stack Developer Assessment (React/Next.js + Laravel + Typesense).
 
-## About Laravel
+## Stack
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+- **Laravel 12** (PHP 8.2+)
+- **Typesense** (optional) – search for protocols and threads
+- **MySQL / PostgreSQL / SQLite** (configurable via `.env`)
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 1. Clone and install
 
-## Learning Laravel
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 2. Database
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+**SQLite (default, no extra setup):**
 
-## Laravel Sponsors
+```bash
+touch database/database.sqlite
+php artisan migrate
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+**MySQL/PostgreSQL:** set `DB_CONNECTION`, `DB_HOST`, `DB_DATABASE`, `DB_USERNAME`, `DB_PASSWORD` in `.env`, then:
 
-### Premium Partners
+```bash
+php artisan migrate
+```
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+### 3. Seed data
 
-## Contributing
+```bash
+php artisan db:seed
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+Creates 12 protocols, 10 threads, 30+ comments, 20 reviews, and 50 votes (mock data).
 
-## Code of Conduct
+### 4. Typesense (optional)
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+To enable search:
 
-## Security Vulnerabilities
+1. In `.env` set:
+   - `TYPESENSE_ENABLED=true`
+   - `TYPESENSE_HOST=` (e.g. `f8g1svtrc4xbjdnwp-1.a1.typesense.net`)
+   - `TYPESENSE_PORT=443`
+   - `TYPESENSE_PROTOCOL=https`
+   - `TYPESENSE_API_KEY=` (Admin API key)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+2. After seeding (or if the index is empty), reindex:
+
+   ```bash
+   php artisan typesense:reindex
+   ```
+
+   Or call `POST /api/reindex` (returns counts of indexed protocols and threads).
+
+With `TYPESENSE_ENABLED=false`, search falls back to database (title/content).
+
+### 5. Run the API
+
+```bash
+php artisan serve
+```
+
+Base URL: `http://localhost:8000`. Health: `http://localhost:8000/up`.
+
+---
+
+## API overview
+
+All API routes are under `/api`. Responses are JSON. Paginated lists use Laravel’s default `data`, `links`, `meta` structure.
+
+### Protocols
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/protocols` | List protocols (paginated). Query: `search`, `sort`, `page` |
+| GET | `/api/protocols/{id}` | Single protocol |
+| POST | `/api/protocols` | Create (body: `title`, `content`, `tags[]`, `author`) |
+| PUT | `/api/protocols/{id}` | Update |
+| DELETE | `/api/protocols/{id}` | Delete |
+
+**Sort:** `sort=recent` \| `most_reviewed` \| `top_rated` \| `most_upvoted` (default: `recent`).
+
+### Threads
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/threads` | List threads. Query: `search`, `sort`, `protocol_id`, `page` |
+| GET | `/api/threads/{id}` | Single thread |
+| POST | `/api/threads` | Create (body: `protocol_id`, `title`, `body`, `tags[]`, `user_id`) |
+| PUT | `/api/threads/{id}` | Update |
+| DELETE | `/api/threads/{id}` | Delete |
+
+**Sort:** `sort=recent` \| `upvoted`.
+
+### Comments
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/threads/{id}/comments` | Nested comments for a thread |
+| POST | `/api/comments` | Create (body: `thread_id`, `body`, `parent_id?`, `user_id`) |
+
+### Reviews
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/protocols/{id}/reviews` | Paginated reviews for a protocol |
+| POST | `/api/reviews` | Create/update (body: `protocol_id`, `rating` 1–5, `feedback?`, `user_id`). One review per user per protocol. |
+
+### Votes
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/votes` | Create or update vote (body: `user_id`, `voteable_id`, `voteable_type`, `value`). `voteable_type`: `App\Models\Protocol`, `App\Models\Thread`, or `App\Models\Comment`. `value`: `1` or `-1`. One vote per user per item. Response includes `votes_count`. |
+
+### Reindex (Typesense)
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/reindex` | Reindex all protocols and threads into Typesense. Returns `protocols`, `threads`, `message`. |
+
+---
+
+## Typesense configuration
+
+- **Collections:** `protocols` (id, title, tags, votes_count, average_rating), `threads` (id, title, body, tags, votes_count).
+- **Indexing:** Protocols and threads are synced to Typesense on create/update/delete (when `TYPESENSE_ENABLED=true`).
+- **Search:** For list endpoints, use query param `search=...`; with Typesense enabled, search uses Typesense; otherwise it uses the database.
+- **Keys:** Use the **Admin API key** in the Laravel backend (`.env`). The **Search-only API key** is for frontend-only search if you ever call Typesense directly from the client; this API uses the backend to query Typesense.
+
+---
+
+## .env.example
+
+`.env.example` includes:
+
+- App, DB, and session settings
+- CORS (`CORS_ALLOWED_ORIGINS`) for the frontend
+- Typesense: `TYPESENSE_ENABLED`, `TYPESENSE_HOST`, `TYPESENSE_PORT`, `TYPESENSE_PROTOCOL`, `TYPESENSE_API_KEY`
+- Production notes (e.g. Render)
+
+Copy to `.env` and fill in values (and run `php artisan key:generate`).
+
+---
+
+## Deployment
+
+See **DEPLOY.md** for deploying this API on Render (Docker + PostgreSQL).
+
+---
 
 ## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+MIT.

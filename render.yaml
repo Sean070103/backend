@@ -1,0 +1,43 @@
+# Render Blueprint: https://render.com/docs/blueprint-spec
+# Use with "New > Blueprint" and connect this repo.
+
+services:
+  - type: web
+    name: laravel-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+
+    # Render assigns PORT; our start script uses it.
+    # No buildCommand/startCommand needed when using Dockerfile CMD.
+
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: false
+      - key: APP_URL
+        sync: false
+        # Set in Render Dashboard to your service URL, e.g. https://laravel-api-xxxx.onrender.com
+      - key: APP_KEY
+        sync: false
+        # Set in Dashboard: run locally "php artisan key:generate --show" and paste the value
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: DATABASE_URL
+        fromDatabase:
+          name: protocol-db
+          property: connectionString
+      - key: CORS_ALLOWED_ORIGINS
+        value: https://task-sand-sigma.vercel.app
+      # Optional: Typesense (set in Dashboard if you use search)
+      # - key: TYPESENSE_ENABLED
+      #   value: true
+      # - key: TYPESENSE_HOST
+      #   sync: false
+      # - key: TYPESENSE_API_KEY
+      #   sync: false
+
+databases:
+  - name: protocol-db
+    plan: free
+    databaseName: protocol_platform
