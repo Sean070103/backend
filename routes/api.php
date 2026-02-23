@@ -14,6 +14,7 @@ Route::apiResource('protocols', ProtocolController::class);
 Route::apiResource('threads', ThreadController::class);
 
 Route::get('threads/{id}/comments', [CommentController::class, 'index']);
+Route::post('threads/{id}/comments', [CommentController::class, 'storeForThread']);
 Route::post('comments', [CommentController::class, 'store']);
 
 Route::get('protocols/{id}/reviews', [ReviewController::class, 'index']);

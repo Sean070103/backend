@@ -29,7 +29,7 @@ class CommentController extends Controller
     }
 
     /**
-     * Store a newly created comment.
+     * Store a newly created comment (called from POST /api/comments with thread_id in body).
      */
     public function store(StoreCommentRequest $request): JsonResponse
     {
@@ -39,5 +39,19 @@ class CommentController extends Controller
         return (new CommentResource($comment))
             ->response()
             ->setStatusCode(201);
+    }
+
+    /**
+     * Store a comment for a thread (called from POST /api/threads/{id}/comments).
+     * Frontend sends only body and optional parent_id; thread_id from URL, user_id default 1 if missing.
+     */
+    public function storeForThread(StoreCommentRequest $request, string $threadId): JsonResponse
+    {
+        $request->merge([
+            'thread_id' => $threadId,
+            'user_id' => $request->input('user_id', 1),
+        ]);
+
+        return $this->store($request);
     }
 }
