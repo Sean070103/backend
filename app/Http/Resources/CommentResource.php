@@ -25,7 +25,6 @@ class CommentResource extends JsonResource
                 'name' => $this->user->name,
             ],
             'votes_count' => $this->votes()->sum('value') ?? 0,
-            'replies' => CommentResource::collection($this->whenLoaded('replies')),
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

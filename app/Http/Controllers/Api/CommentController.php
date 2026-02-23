@@ -13,16 +13,18 @@ use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 class CommentController extends Controller
 {
     /**
-     * Get comments for a thread (nested)
+     * Get comments for a thread.
+     * Returns a flat list with parent_id so the frontend
+     * can build a threaded tree on its side.
      */
     public function index(string $threadId): AnonymousResourceCollection
     {
         $thread = Thread::findOrFail($threadId);
-        
+
         $comments = Comment::where('thread_id', $threadId)
-            ->whereNull('parent_id')
-            ->with(['user', 'replies.user', 'replies.replies.user'])
+            ->with('user')
             ->withCount('votes')
+            ->orderBy('created_at')
             ->get();
 
         return CommentResource::collection($comments);
@@ -43,13 +45,16 @@ class CommentController extends Controller
 
     /**
      * Store a comment for a thread (called from POST /api/threads/{id}/comments).
-     * Frontend sends only body and optional parent_id; thread_id from URL, user_id default 1 if missing.
+     * Frontend sends only body and optional parent_id; thread_id from URL.
+     * Uses the authenticated user when available, with a safe fallback.
      */
     public function storeForThread(StoreCommentRequest $request, string $threadId): JsonResponse
     {
+        $userId = $request->user()->id ?? auth()->id() ?? $request->input('user_id', 1);
+
         $request->merge([
             'thread_id' => $threadId,
-            'user_id' => $request->input('user_id', 1),
+            'user_id' => $userId,
         ]);
 
         return $this->store($request);
