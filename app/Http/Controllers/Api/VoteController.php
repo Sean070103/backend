@@ -30,9 +30,10 @@ class VoteController extends Controller
             $vote = Vote::create($validated);
         }
 
-        // Get updated vote count
-        $voteable = $vote->voteable;
-        $votesCount = $voteable->votes()->sum('value') ?? 0;
+        // Sum all votes for this voteable (same id + type we stored) so count is always correct
+        $votesCount = (int) Vote::where('voteable_id', $vote->voteable_id)
+            ->where('voteable_type', $vote->voteable_type)
+            ->sum('value');
 
         return response()->json([
             'message' => 'Vote saved successfully',
