@@ -31,7 +31,11 @@ class StoreVoteRequest extends FormRequest
             ? self::VOTEABLE_MAP[$type]
             : $type;
 
-        $userId = $this->user()?->id ?? auth()->id() ?? $this->input('user_id', 1);
+        // Use a dedicated \"guest\" user id when no authenticated user is present,
+        // so seeded votes (real users) remain separate and a new click clearly
+        // adds or flips a single additional vote in the total.
+        $guestUserId = 999999;
+        $userId = $this->user()?->id ?? auth()->id() ?? $this->input('user_id', $guestUserId);
 
         $this->merge([
             'voteable_type' => $mapped,
