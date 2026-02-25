@@ -12,10 +12,15 @@ use App\Services\TypesenseService;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Hash;
 
 class DatabaseSeeder extends Seeder
 {
     use WithoutModelEvents;
+
+    /** Guest user id used for unauthenticated votes so they count as a new vote. */
+    public const GUEST_USER_ID = 999999;
 
     /**
      * Seed the application's database.
@@ -24,6 +29,16 @@ class DatabaseSeeder extends Seeder
     {
         // Create users
         $users = User::factory(10)->create();
+
+        // Guest user for unauthenticated votes (FK constraint); id must not conflict with factory ids
+        DB::table('users')->insertOrIgnore([
+            'id' => self::GUEST_USER_ID,
+            'name' => 'Guest',
+            'email' => 'guest@protocol.local',
+            'password' => Hash::make('guest'),
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
 
         // Create 12 protocols
         $protocols = Protocol::factory(12)->create();
