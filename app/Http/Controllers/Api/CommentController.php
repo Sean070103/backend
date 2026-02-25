@@ -50,7 +50,7 @@ class CommentController extends Controller
      */
     public function storeForThread(StoreCommentRequest $request, string $threadId): JsonResponse
     {
-        $userId = $request->user()?->id ?? auth()->id() ?? $request->input('user_id', 1);
+        $userId = $request->user()?->id ?? auth()->id() ?? $request->input('user_id', 999999);
 
         $request->merge([
             'thread_id' => $threadId,

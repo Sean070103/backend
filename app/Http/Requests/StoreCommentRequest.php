@@ -23,7 +23,8 @@ class StoreCommentRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $threadId = $this->route('thread') ?? $this->route('id') ?? $this->input('thread_id');
-        $userId = $this->user()->id ?? auth()->id() ?? $this->input('user_id', 1);
+        $guestUserId = 999999; // Must exist (see migration/seed); use when no auth
+        $userId = $this->user()?->id ?? auth()->id() ?? $this->input('user_id', $guestUserId);
 
         $this->merge([
             'thread_id' => $threadId,
